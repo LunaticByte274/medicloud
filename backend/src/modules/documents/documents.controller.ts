@@ -32,7 +32,7 @@ export async function requestPresignedUrl(req: Request, res: Response, next: Nex
          patient_id, doctor_id, appointment_id, document_type, original_filename,
          s3_key, content_type, file_size, processing_status
        )
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'UPLOADED')
+       VALUES ($1, $2, $3, $4::document_type, $5, $6, $7, $8, 'UPLOADED')
        RETURNING *`,
       [
         patientId,
@@ -146,11 +146,11 @@ export async function getDocuments(req: Request, res: Response, next: NextFuncti
 
     if (status) {
       params.push(status);
-      conditions.push(`md.processing_status = $${params.length}`);
+      conditions.push(`md.processing_status::text = $${params.length}`);
     }
     if (type) {
       params.push(type);
-      conditions.push(`md.document_type = $${params.length}`);
+      conditions.push(`md.document_type::text = $${params.length}`);
     }
 
     const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';

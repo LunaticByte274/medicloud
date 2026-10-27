@@ -124,7 +124,7 @@ export async function getAppointments(req: Request, res: Response, next: NextFun
 
     if (status && status !== 'ALL') {
       params.push(status);
-      conditions.push(`a.status = $${params.length}`);
+      conditions.push(`a.status::text = $${params.length}`);
     }
 
     const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
@@ -363,7 +363,7 @@ export async function updateAppointmentStatus(req: Request, res: Response, next:
 
     const updateRes = await query(
       `UPDATE appointments 
-       SET status = $1, notes = COALESCE($2, notes), updated_at = CURRENT_TIMESTAMP
+       SET status = $1::appointment_status, notes = COALESCE($2, notes), updated_at = CURRENT_TIMESTAMP
        WHERE id = $3
        RETURNING *`,
       [status, notes || null, id]

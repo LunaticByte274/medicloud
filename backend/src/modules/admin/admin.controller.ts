@@ -137,11 +137,11 @@ export async function getUsers(req: Request, res: Response, next: NextFunction):
 
     if (role) {
       params.push(role);
-      conditions.push(`role = $${params.length}`);
+      conditions.push(`role::text = $${params.length}`);
     }
     if (status) {
       params.push(status);
-      conditions.push(`account_status = $${params.length}`);
+      conditions.push(`account_status::text = $${params.length}`);
     }
     if (search) {
       params.push(`%${search}%`);
@@ -175,7 +175,7 @@ export async function updateUserStatus(req: Request, res: Response, next: NextFu
     }
 
     const updateRes = await query(
-      `UPDATE users SET account_status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING id, name, email, account_status`,
+      `UPDATE users SET account_status = $1::account_status, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING id, name, email, account_status`,
       [accountStatus, id]
     );
 

@@ -12,7 +12,7 @@ export async function getDoctorAvailability(req: Request, res: Response, next: N
       `SELECT id, doctor_id, start_at, end_at, availability_status, created_at
        FROM doctor_availability
        WHERE doctor_id = $1 
-         AND ($2 = 'ALL' OR availability_status = $2)
+         AND ($2 = 'ALL' OR availability_status::text = $2)
          AND start_at >= CURRENT_TIMESTAMP - INTERVAL '1 day'
        ORDER BY start_at ASC`,
       [doctorId, status]
@@ -46,7 +46,7 @@ export async function createSlot(req: Request, res: Response, next: NextFunction
     const overlapRes = await query(
       `SELECT id FROM doctor_availability
        WHERE doctor_id = $1
-         AND availability_status != 'CANCELLED'
+         AND availability_status::text != 'CANCELLED'
          AND (
            (start_at < $3 AND end_at > $2)
          )`,
