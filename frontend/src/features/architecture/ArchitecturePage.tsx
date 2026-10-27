@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { ArchitectureDiagram } from './ArchitectureDiagram.js';
 import {
   Layers,
   Cloud,
@@ -201,6 +202,15 @@ export const ArchitecturePage: React.FC = () => {
           MediCloud is engineered as a decoupled, multi-tier cloud platform adhering to the AWS Well-Architected Framework. Click any cloud component below to inspect its IaC template, IAM policy, and live AWS resource identifiers.
         </p>
       </div>
+
+      {/* Visual Multi-Tier Architectural Diagram Canvas */}
+      <ArchitectureDiagram
+        selectedNodeId={selectedNode.id}
+        onSelectNode={(nodeId) => {
+          const found = ARCHITECTURE_NODES.find((n) => n.id === nodeId);
+          if (found) setSelectedNode(found);
+        }}
+      />
 
       {/* Interactive AWS Cloud Topology Grid */}
       <div style={{ marginBottom: '2.5rem' }}>
