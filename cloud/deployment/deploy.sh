@@ -70,3 +70,24 @@ aws cloudformation deploy \
 echo "===================================================================="
 echo " MediCloud AWS Infrastructure Deployment Succeeded!"
 echo "===================================================================="
+
+BUCKET_NAME=$(aws cloudformation describe-stacks --stack-name "${ENV_NAME}-s3" --region "${REGION}" \
+  --query "Stacks[0].Outputs[?OutputKey=='BucketName'].OutputValue" --output text 2>/dev/null || echo "N/A")
+
+QUEUE_URL=$(aws cloudformation describe-stacks --stack-name "${ENV_NAME}-sqs-sns" --region "${REGION}" \
+  --query "Stacks[0].Outputs[?OutputKey=='QueueUrl'].OutputValue" --output text 2>/dev/null || echo "N/A")
+
+SNS_ARN=$(aws cloudformation describe-stacks --stack-name "${ENV_NAME}-sqs-sns" --region "${REGION}" \
+  --query "Stacks[0].Outputs[?OutputKey=='TopicArn'].OutputValue" --output text 2>/dev/null || echo "N/A")
+
+echo ""
+echo "===================================================================="
+echo " COPY THESE VALUES INTO YOUR backend/.env FILE (OR SEND THEM HERE):"
+echo "===================================================================="
+echo "USE_LOCAL_CLOUD_MOCKS=false"
+echo "AWS_REGION=${REGION}"
+echo "AWS_S3_BUCKET_NAME=${BUCKET_NAME}"
+echo "AWS_SQS_QUEUE_URL=${QUEUE_URL}"
+echo "AWS_SNS_TOPIC_ARN=${SNS_ARN}"
+echo "===================================================================="
+

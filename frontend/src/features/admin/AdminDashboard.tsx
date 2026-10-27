@@ -14,13 +14,18 @@ import {
   TrendingUp,
   Cpu,
   RefreshCw,
+  Cloud,
+  Lock,
+  Layers,
+  HardDrive,
+  Bell,
+  DollarSign,
 } from 'lucide-react';
 
 export const AdminDashboard: React.FC = () => {
   const [analytics, setAnalytics] = useState<AdminAnalytics | null>(null);
   const [auditLogs, setAuditLogs] = useState<AuditLogItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [retryLoading, setRetryLoading] = useState<boolean>(false);
 
   const fetchDashboardData = async () => {
     try {
@@ -44,34 +49,44 @@ export const AdminDashboard: React.FC = () => {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+      {/* Page Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
-          <h1 style={{ fontSize: '1.85rem', marginBottom: '0.35rem' }}>Cloud Infrastructure & System Analytics</h1>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.5rem' }}>
+            <span className="cloud-beacon">
+              <span className="beacon-dot" />
+              <span>AWS Cloud Infrastructure Active</span>
+            </span>
+          </div>
+          <h1 style={{ fontSize: '2rem', marginBottom: '0.35rem' }}>Platform Governance & Cloud Telemetry</h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
-            Live platform metrics aggregated directly from Amazon RDS PostgreSQL and Amazon SQS queues.
+            Live healthcare operations and infrastructure metrics aggregated from Amazon RDS PostgreSQL, S3, and Amazon SQS queues.
           </p>
         </div>
-        <button onClick={fetchDashboardData} className="btn btn-outline" style={{ gap: '0.5rem' }}>
+        <button onClick={fetchDashboardData} className="btn btn-outline" style={{ gap: '0.5rem', padding: '0.65rem 1.25rem' }}>
           <RefreshCw size={16} />
-          <span>Refresh Metrics</span>
+          <span>Refresh Cloud Metrics</span>
         </button>
       </div>
 
       {loading || !analytics ? (
-        <div style={{ textAlign: 'center', padding: '4rem 0', color: 'var(--text-secondary)' }}>
-          <p>Aggregating cloud metrics...</p>
+        <div style={{ textAlign: 'center', padding: '5rem 0', color: 'var(--text-secondary)' }}>
+          <RefreshCw size={36} className="spin" color="var(--primary-blue)" style={{ marginBottom: '1rem' }} />
+          <p style={{ fontWeight: 600 }}>Aggregating telemetry from PostgreSQL & SQS...</p>
         </div>
       ) : (
         <>
           {/* Top KPI Cards Grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.25rem', marginBottom: '2rem' }}>
+          <div className="grid-metrics" style={{ marginBottom: '2rem' }}>
             {/* Total Appointments */}
-            <div className="card">
+            <div className="card card-featured">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-                <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Total Appointments</span>
-                <CalendarCheck size={20} color="var(--primary-blue)" />
+                <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Total Consultations</span>
+                <div style={{ width: '36px', height: '36px', borderRadius: 'var(--radius-md)', background: 'var(--primary-subtle)', color: 'var(--primary-blue)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <CalendarCheck size={18} />
+                </div>
               </div>
-              <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.35rem' }}>
+              <div style={{ fontSize: '2.2rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '0.25rem' }}>
                 {analytics.appointments.total}
               </div>
               <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
@@ -80,75 +95,81 @@ export const AdminDashboard: React.FC = () => {
             </div>
 
             {/* Cancellation Rate */}
-            <div className="card">
+            <div className="card card-featured">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
                 <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Cancellation Rate</span>
-                <XCircle size={20} color="var(--error)" />
+                <div style={{ width: '36px', height: '36px', borderRadius: 'var(--radius-md)', background: 'var(--error-bg)', color: 'var(--error)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <XCircle size={18} />
+                </div>
               </div>
-              <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.35rem' }}>
+              <div style={{ fontSize: '2.2rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '0.25rem' }}>
                 {analytics.appointments.cancellationRatePercent}%
               </div>
               <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                {analytics.appointments.cancelled} of {analytics.appointments.total} consultations cancelled
+                {analytics.appointments.cancelled} of {analytics.appointments.total} bookings cancelled
               </div>
             </div>
 
             {/* Doctor Utilization */}
-            <div className="card">
+            <div className="card card-featured">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
                 <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Doctor Utilization</span>
-                <TrendingUp size={20} color="var(--secondary-teal)" />
+                <div style={{ width: '36px', height: '36px', borderRadius: 'var(--radius-md)', background: 'var(--teal-subtle)', color: 'var(--secondary-teal)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <TrendingUp size={18} />
+                </div>
               </div>
-              <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.35rem' }}>
+              <div style={{ fontSize: '2.2rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '0.25rem' }}>
                 {analytics.doctorUtilizationPercent}%
               </div>
               <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                Scheduled vs created clinical slots
+                Scheduled consultations vs available slots
               </div>
             </div>
 
             {/* SQS Document Queue */}
-            <div className="card">
+            <div className="card card-featured">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
                 <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>SQS Queue & OCR</span>
-                <FileText size={20} color="var(--info)" />
+                <div style={{ width: '36px', height: '36px', borderRadius: 'var(--radius-md)', background: 'var(--info-bg)', color: 'var(--info)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <FileText size={18} />
+                </div>
               </div>
-              <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.35rem' }}>
+              <div style={{ fontSize: '2.2rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '0.25rem' }}>
                 {analytics.documents.completed}/{analytics.documents.total}
               </div>
               <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                {analytics.documents.queued} In Backlog • {analytics.documents.successRatePercent}% Success Rate
+                {analytics.documents.queued} In Backlog • {analytics.documents.successRatePercent}% Success
               </div>
             </div>
           </div>
 
-          {/* Middle Row: Specialization Demand & Cloud Resource Status */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '2.5rem' }}>
+          {/* Middle Row: Specialization Demand & Cloud Architecture Health Status */}
+          <div className="grid-2col" style={{ marginBottom: '2.5rem' }}>
             {/* Specialization Demand */}
             <div className="card">
-              <h3 style={{ fontSize: '1.15rem', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Activity size={18} color="var(--primary-blue)" />
+              <h3 style={{ fontSize: '1.2rem', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                <Activity size={20} color="var(--primary-blue)" />
                 <span>Specialization Demand Distribution</span>
               </h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 {analytics.specializationDemand.map((spec) => {
                   const maxCount = Math.max(...analytics.specializationDemand.map((s) => s.appointment_count), 1);
                   const percentage = Math.round((spec.appointment_count / maxCount) * 100);
 
                   return (
                     <div key={spec.specialization}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '0.3rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem', marginBottom: '0.35rem' }}>
                         <span style={{ fontWeight: 600 }}>{spec.specialization}</span>
-                        <span style={{ color: 'var(--text-secondary)' }}>{spec.appointment_count} visits</span>
+                        <span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>{spec.appointment_count} visits</span>
                       </div>
                       <div style={{ height: '8px', backgroundColor: 'var(--border-subtle)', borderRadius: 'var(--radius-full)', overflow: 'hidden' }}>
                         <div
                           style={{
                             height: '100%',
                             width: `${percentage}%`,
-                            backgroundColor: 'var(--primary-blue)',
+                            background: 'linear-gradient(90deg, var(--primary-blue), var(--secondary-teal))',
                             borderRadius: 'var(--radius-full)',
-                            transition: 'width 0.5s ease',
+                            transition: 'width 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
                           }}
                         />
                       </div>
@@ -160,29 +181,48 @@ export const AdminDashboard: React.FC = () => {
 
             {/* AWS Cloud Architecture Health Status */}
             <div className="card">
-              <h3 style={{ fontSize: '1.15rem', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Cpu size={18} color="var(--secondary-teal)" />
-                <span>AWS Cloud Infrastructure Status</span>
+              <h3 style={{ fontSize: '1.2rem', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                <Cloud size={20} color="var(--primary-blue)" />
+                <span>AWS Live Cloud Architecture</span>
               </h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.85rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.6rem 0.85rem', backgroundColor: 'var(--border-subtle)', borderRadius: 'var(--radius-md)' }}>
-                  <div><strong>Amazon EC2:</strong> Primary Node.js/Express Compute</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem 1rem', backgroundColor: 'var(--border-subtle)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
+                  <div>
+                    <strong>Amazon EC2:</strong> Primary Compute Tier
+                    <span style={{ display: 'block', fontSize: '0.725rem', color: 'var(--text-muted)' }}>Node.js / Express 4 API & Background Daemon</span>
+                  </div>
                   <span className="badge badge-success">Running</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.6rem 0.85rem', backgroundColor: 'var(--border-subtle)', borderRadius: 'var(--radius-md)' }}>
-                  <div><strong>Amazon RDS:</strong> PostgreSQL 16 Managed DB</div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem 1rem', backgroundColor: 'var(--border-subtle)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
+                  <div>
+                    <strong>Amazon RDS:</strong> PostgreSQL 16
+                    <span style={{ display: 'block', fontSize: '0.725rem', color: 'var(--text-muted)' }}>Isolated Subnet • Connection Pool Active</span>
+                  </div>
                   <span className="badge badge-success">Available</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.6rem 0.85rem', backgroundColor: 'var(--border-subtle)', borderRadius: 'var(--radius-md)' }}>
-                  <div><strong>Amazon S3:</strong> Encrypted Document Storage</div>
-                  <span className="badge badge-success">Private & Blocked</span>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem 1rem', backgroundColor: 'var(--border-subtle)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
+                  <div>
+                    <strong>Amazon S3:</strong> Encrypted Bucket
+                    <span style={{ display: 'block', fontSize: '0.725rem', color: 'var(--text-muted)' }}>Public Access Blocked • SigV4 Presigned URLs</span>
+                  </div>
+                  <span className="badge badge-success">AES256</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.6rem 0.85rem', backgroundColor: 'var(--border-subtle)', borderRadius: 'var(--radius-md)' }}>
-                  <div><strong>Amazon SQS:</strong> Document Ingestion & Worker Queue</div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem 1rem', backgroundColor: 'var(--border-subtle)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
+                  <div>
+                    <strong>Amazon SQS + DLQ:</strong> Asynchronous Queue
+                    <span style={{ display: 'block', fontSize: '0.725rem', color: 'var(--text-muted)' }}>Max Receive: 3 • Visibility: 120s</span>
+                  </div>
                   <span className="badge badge-info">{analytics.documents.queued} Messages</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.6rem 0.85rem', backgroundColor: 'var(--border-subtle)', borderRadius: 'var(--radius-md)' }}>
-                  <div><strong>AWS Budgets:</strong> Spending Alert ($15 Threshold)</div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem 1rem', backgroundColor: 'var(--border-subtle)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
+                  <div>
+                    <strong>Amazon SNS & CloudWatch:</strong>
+                    <span style={{ display: 'block', fontSize: '0.725rem', color: 'var(--text-muted)' }}>Alarms on Queue Depth &gt; 10</span>
+                  </div>
                   <span className="badge badge-success">Configured</span>
                 </div>
               </div>
@@ -191,10 +231,16 @@ export const AdminDashboard: React.FC = () => {
 
           {/* Audit Logs Trail */}
           <div className="card">
-            <h3 style={{ fontSize: '1.15rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <ShieldCheck size={18} color="var(--primary-blue)" />
-              <span>Real-Time System Audit Trail</span>
-            </h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+              <h3 style={{ fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                <ShieldCheck size={20} color="var(--primary-blue)" />
+                <span>Real-Time Clinical Audit Trail</span>
+              </h3>
+              <span className="badge badge-neutral" style={{ fontSize: '0.75rem' }}>
+                Immutable Audit Log
+              </span>
+            </div>
+            
             <div className="table-container">
               <table>
                 <thead>
@@ -204,20 +250,20 @@ export const AdminDashboard: React.FC = () => {
                     <th>Actor</th>
                     <th>Resource</th>
                     <th>Outcome</th>
-                    <th>Metadata</th>
+                    <th>Security Context</th>
                   </tr>
                 </thead>
                 <tbody>
                   {auditLogs.map((log) => (
                     <tr key={log.id}>
-                      <td style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                        {new Date(log.created_at).toLocaleTimeString()}
+                      <td style={{ fontSize: '0.8rem', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
+                        {new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                       </td>
                       <td>
-                        <span style={{ fontWeight: 600 }}>{log.action}</span>
+                        <span style={{ fontWeight: 700 }}>{log.action}</span>
                       </td>
                       <td>
-                        <span style={{ fontSize: '0.8rem' }}>{log.actor_name || 'System / Guest'}</span>
+                        <span style={{ fontSize: '0.85rem' }}>{log.actor_name || 'System'}</span>
                       </td>
                       <td>
                         <span className="badge badge-neutral" style={{ fontSize: '0.7rem' }}>
@@ -229,7 +275,7 @@ export const AdminDashboard: React.FC = () => {
                           {log.outcome}
                         </span>
                       </td>
-                      <td style={{ fontSize: '0.75rem', fontFamily: 'monospace', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <td style={{ fontSize: '0.75rem', fontFamily: 'monospace', maxWidth: '240px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {JSON.stringify(log.safe_metadata)}
                       </td>
                     </tr>
