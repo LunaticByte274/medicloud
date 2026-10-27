@@ -1,0 +1,61 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'MediCloud Amazon CloudWatch Monitoring Alarms for SQS Backlog and EC2 Utilization'
+
+Parameters:
+  EnvironmentName:
+    Type: String
+    Default: medicloud-production
+  QueueName:
+    Type: String
+    Default: medicloud-production-document-jobs
+  NotificationTopicArn:
+    Type: String
+    Description: SNS Topic ARN to dispatch alarm notifications to
+
+Resources:
+  # 1. Alarm: Sustained SQS Document Processing Backlog
+  QueueBacklogAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub '${EnvironmentName}-HighSQSQueueBacklog'
+      AlarmDescription: 'Fires when unprocessed document queue depth exceeds 10 messages for 5 minutes, indicating potential worker stall or processing bottleneck.'
+      MetricName: ApproximateNumberOfMessagesVisible
+      Namespace: AWS/SQS
+      Statistic: Average
+      Period: 300 # 5 minutes
+      EvaluationPeriods: 1
+      Threshold: 10
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Dimensions:
+        - Name: QueueName
+          Value: !Ref QueueName
+      AlarmActions:
+        - !Ref NotificationTopicArn
+      OKActions:
+        - !Ref NotificationTopicArn
+      TreatMissingData: notBreaching
+
+  # 2. Alarm: High Compute CPU Utilization
+  HighCPUAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub '${EnvironmentName}-HighEC2CPUUtilization'
+      AlarmDescription: 'Fires when EC2 host CPU utilization exceeds 80% for 5 consecutive minutes.'
+      MetricName: CPUUtilization
+      Namespace: AWS/EC2
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 80
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      AlarmActions:
+        - !Ref NotificationTopicArn
+      TreatMissingData: notBreaching
+
+Outputs:
+  QueueBacklogAlarmArn:
+    Description: ARN of the SQS Backlog Alarm
+    Value: !GetAtt QueueBacklogAlarm.Arn
+  HighCPUAlarmArn:
+    Description: ARN of the High CPU Alarm
+    Value: !GetAtt HighCPUAlarm.Arn

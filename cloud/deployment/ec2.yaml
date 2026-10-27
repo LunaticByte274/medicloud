@@ -1,0 +1,96 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'MediCloud Amazon EC2 Compute Host with Automated UserData Bootstrap'
+
+Parameters:
+  EnvironmentName:
+    Type: String
+    Default: medicloud-production
+  SubnetId:
+    Type: AWS::EC2::Subnet::Id
+  EC2SecurityGroupId:
+    Type: AWS::EC2::SecurityGroup::Id
+  EC2InstanceProfileName:
+    Type: String
+    Default: medicloud-production-ec2-instance-profile
+  LatestAmiId:
+    Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
+    Default: '/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64'
+
+Resources:
+  EC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t3.micro
+      ImageId: !Ref LatestAmiId
+      IamInstanceProfile: !Ref EC2InstanceProfileName
+      SubnetId: !Ref SubnetId
+      SecurityGroupIds:
+        - !Ref EC2SecurityGroupId
+      BlockDeviceMappings:
+        - DeviceName: /dev/xvda
+          Ebs:
+            VolumeSize: 20
+            VolumeType: gp3
+            Encrypted: true
+            DeleteOnTermination: true
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          set -e
+          echo "========================================="
+          echo "MediCloud EC2 Cloud Compute Provisioning"
+          echo "========================================="
+
+          # 1. Update OS packages and install Node.js 20 LTS & Git
+          dnf update -y
+          dnf install -y git
+          curl -fsSL https://rpm.nodesource.com/setup_20.x | bash -
+          dnf install -y nodejs
+
+          # 2. Clone application codebase
+          mkdir -p /opt/medicloud
+          cd /opt/medicloud
+          # Note: In production replace with your GitHub repository URL:
+          # git clone https://github.com/your-username/medicloud.git /opt/medicloud
+
+          # 3. Create systemd service for MediCloud API & Background Worker
+          cat << 'EOF' > /etc/systemd/system/medicloud.service
+          [Unit]
+          Description=MediCloud Healthcare Express Server & Background Worker
+          After=network.target
+
+          [Service]
+          Type=simple
+          User=ec2-user
+          WorkingDirectory=/opt/medicloud/backend
+          ExecStart=/usr/bin/npm start
+          Restart=always
+          RestartSec=5
+          Environment=NODE_ENV=production
+          Environment=PORT=5000
+          Environment=USE_LOCAL_CLOUD_MOCKS=false
+
+          [Install]
+          WantedBy=multi-user.target
+          EOF
+
+          systemctl daemon-reload
+          systemctl enable medicloud.service
+          echo "MediCloud EC2 bootstrap completed."
+      Tags:
+        - Key: Name
+          Value: !Sub '${EnvironmentName}-app-host'
+        - Key: Project
+          Value: MediCloud
+
+Outputs:
+  InstanceId:
+    Description: EC2 Instance ID
+    Value: !Ref EC2Instance
+    Export:
+      Name: !Sub '${EnvironmentName}-InstanceId'
+  PublicIp:
+    Description: EC2 Host Public IP Address
+    Value: !GetAtt EC2Instance.PublicIp
+    Export:
+      Name: !Sub '${EnvironmentName}-PublicIp'

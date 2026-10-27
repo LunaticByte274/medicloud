@@ -1,0 +1,54 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'MediCloud Private Amazon S3 Document Storage with Block Public Access and Encryption'
+
+Parameters:
+  EnvironmentName:
+    Type: String
+    Default: medicloud-production
+
+Resources:
+  MedicalDocumentsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub '${EnvironmentName}-documents-${AWS::AccountId}-${AWS::Region}'
+      AccessControl: Private
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders:
+              - '*'
+            AllowedMethods:
+              - GET
+              - PUT
+              - POST
+              - HEAD
+            AllowedOrigins:
+              - '*' # Restrict to ALB/CloudFront origin in final production
+            MaxAge: 3600
+      VersioningConfiguration:
+        Status: Enabled
+      Tags:
+        - Key: Name
+          Value: !Sub '${EnvironmentName}-documents-bucket'
+        - Key: Project
+          Value: MediCloud
+
+Outputs:
+  BucketName:
+    Description: S3 Document Bucket Name
+    Value: !Ref MedicalDocumentsBucket
+    Export:
+      Name: !Sub '${EnvironmentName}-S3BucketName'
+  BucketArn:
+    Description: S3 Document Bucket ARN
+    Value: !GetAtt MedicalDocumentsBucket.Arn
+    Export:
+      Name: !Sub '${EnvironmentName}-S3BucketArn'

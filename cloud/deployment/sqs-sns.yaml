@@ -1,0 +1,83 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'MediCloud Asynchronous SQS Queue with DLQ and Amazon SNS Notification Topic'
+
+Parameters:
+  EnvironmentName:
+    Type: String
+    Default: medicloud-production
+  AdminAlertEmail:
+    Type: String
+    Default: 'admin.notifications@example.com'
+    Description: Email address to subscribe to SNS operational notifications
+
+Resources:
+  # 1. Dead-Letter Queue (DLQ) for failed document jobs
+  DocumentJobsDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${EnvironmentName}-document-jobs-dlq'
+      MessageRetentionPeriod: 1209600 # 14 days
+      Tags:
+        - Key: Name
+          Value: !Sub '${EnvironmentName}-document-jobs-dlq'
+        - Key: Project
+          Value: MediCloud
+
+  # 2. Main SQS Document Processing Queue
+  DocumentJobsQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${EnvironmentName}-document-jobs'
+      VisibilityTimeout: 120 # 2 minutes for OCR extraction
+      MessageRetentionPeriod: 345600 # 4 days
+      ReceiveMessageWaitTimeSeconds: 20 # Long-polling enabled
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt DocumentJobsDLQ.Arn
+        maxReceiveCount: 3 # Route to DLQ after 3 failed processing attempts
+      Tags:
+        - Key: Name
+          Value: !Sub '${EnvironmentName}-document-jobs-queue'
+        - Key: Project
+          Value: MediCloud
+
+  # 3. Amazon SNS Topic for Platform Notifications
+  NotificationTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub '${EnvironmentName}-notifications-topic'
+      DisplayName: MediCloud Clinical Platform Notifications
+      Tags:
+        - Key: Name
+          Value: !Sub '${EnvironmentName}-notifications-topic'
+        - Key: Project
+          Value: MediCloud
+
+  # 4. Optional Email Subscription
+  NotificationSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Protocol: email
+      TopicArn: !Ref NotificationTopic
+      Endpoint: !Ref AdminAlertEmail
+
+Outputs:
+  QueueUrl:
+    Description: SQS Document Queue URL
+    Value: !Ref DocumentJobsQueue
+    Export:
+      Name: !Sub '${EnvironmentName}-SQSQueueUrl'
+  QueueArn:
+    Description: SQS Document Queue ARN
+    Value: !GetAtt DocumentJobsQueue.Arn
+    Export:
+      Name: !Sub '${EnvironmentName}-SQSQueueArn'
+  DLQUrl:
+    Description: SQS Dead-Letter Queue URL
+    Value: !Ref DocumentJobsDLQ
+    Export:
+      Name: !Sub '${EnvironmentName}-SQSDLQUrl'
+  TopicArn:
+    Description: SNS Topic ARN
+    Value: !Ref NotificationTopic
+    Export:
+      Name: !Sub '${EnvironmentName}-SNSTopicArn'

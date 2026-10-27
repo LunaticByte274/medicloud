@@ -1,0 +1,127 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'MediCloud Least-Privilege IAM Role and Instance Profile for EC2 Compute Tier'
+
+Parameters:
+  EnvironmentName:
+    Type: String
+    Default: medicloud-production
+
+Resources:
+  EC2AppRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${EnvironmentName}-ec2-app-role'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      Path: /
+      Policies:
+        # S3 Document Store Least Privilege
+        - PolicyName: MediCloudS3DocumentPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: S3ObjectOperations
+                Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:GetObject
+                  - s3:AbortMultipartUpload
+                Resource: !Sub 'arn:aws:s3:::medicloud-documents-*/*'
+              - Sid: S3BucketList
+                Effect: Allow
+                Action:
+                  - s3:ListBucket
+                Resource: !Sub 'arn:aws:s3:::medicloud-documents-*'
+
+        # SQS Document Jobs Queue Least Privilege
+        - PolicyName: MediCloudSQSPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: SQSQueueOperations
+                Effect: Allow
+                Action:
+                  - sqs:SendMessage
+                  - sqs:ReceiveMessage
+                  - sqs:DeleteMessage
+                  - sqs:GetQueueAttributes
+                Resource: !Sub 'arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:medicloud-*'
+
+        # SNS Event Publishing Least Privilege
+        - PolicyName: MediCloudSNSPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: SNSPublishOperations
+                Effect: Allow
+                Action:
+                  - sns:Publish
+                Resource: !Sub 'arn:aws:sns:${AWS::Region}:${AWS::AccountId}:medicloud-*'
+
+        # SSM Parameter Store Runtime Config Read
+        - PolicyName: MediCloudSSMPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: SSMGetParameters
+                Effect: Allow
+                Action:
+                  - ssm:GetParameter
+                  - ssm:GetParameters
+                  - ssm:GetParametersByPath
+                Resource: !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/medicloud/*'
+
+        # CloudWatch Logging & Custom Metrics
+        - PolicyName: MediCloudCloudWatchPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: CloudWatchLogOperations
+                Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                  - logs:DescribeLogStreams
+                Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/medicloud/*:*'
+              - Sid: CloudWatchPutMetrics
+                Effect: Allow
+                Action:
+                  - cloudwatch:PutMetricData
+                Resource: '*'
+
+        # Textract (Optional Document Analysis)
+        - PolicyName: MediCloudTextractPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: TextractOperations
+                Effect: Allow
+                Action:
+                  - textract:DetectDocumentText
+                Resource: '*'
+
+  EC2InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      InstanceProfileName: !Sub '${EnvironmentName}-ec2-instance-profile'
+      Path: /
+      Roles:
+        - !Ref EC2AppRole
+
+Outputs:
+  EC2AppRoleArn:
+    Description: IAM Role ARN assumed by EC2
+    Value: !GetAtt EC2AppRole.Arn
+    Export:
+      Name: !Sub '${EnvironmentName}-EC2AppRoleArn'
+  EC2InstanceProfileName:
+    Description: Instance Profile Name to attach to EC2
+    Value: !Ref EC2InstanceProfile
+    Export:
+      Name: !Sub '${EnvironmentName}-EC2InstanceProfileName'

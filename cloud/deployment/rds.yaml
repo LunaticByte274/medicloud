@@ -1,0 +1,77 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'MediCloud Amazon RDS PostgreSQL 16 Managed Database Configuration'
+
+Parameters:
+  EnvironmentName:
+    Type: String
+    Default: medicloud-production
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+  PrivateDBSubnet1Id:
+    Type: AWS::EC2::Subnet::Id
+  PrivateDBSubnet2Id:
+    Type: AWS::EC2::Subnet::Id
+  RDSSecurityGroupId:
+    Type: AWS::EC2::SecurityGroup::Id
+  DBName:
+    Type: String
+    Default: medicloud_db
+  DBMasterUser:
+    Type: String
+    Default: medicloud_admin
+  DBMasterPassword:
+    Type: String
+    NoEcho: true
+    Description: Master password stored securely in SSM Parameter Store
+
+Resources:
+  # 1. RDS DB Subnet Group across isolated database subnets
+  DBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Subnets for private RDS PostgreSQL instance
+      SubnetIds:
+        - !Ref PrivateDBSubnet1Id
+        - !Ref PrivateDBSubnet2Id
+      Tags:
+        - Key: Name
+          Value: !Sub '${EnvironmentName}-db-subnet-group'
+
+  # 2. RDS PostgreSQL Instance (Cost-Conscious Single-AZ t3/t4g.micro)
+  RDSInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceIdentifier: !Sub '${EnvironmentName}-postgres'
+      Engine: postgres
+      EngineVersion: '16.3'
+      DBInstanceClass: db.t3.micro
+      AllocatedStorage: '20'
+      StorageType: gp3
+      MultiAZ: false # Cost optimization: Single-AZ for student demo
+      PubliclyAccessible: false # MANDATORY: Prohibit public exposure
+      DBName: !Ref DBName
+      MasterUsername: !Ref DBMasterUser
+      MasterUserPassword: !Ref DBMasterPassword
+      DBSubnetGroupName: !Ref DBSubnetGroup
+      VPCSecurityGroups:
+        - !Ref RDSSecurityGroupId
+      BackupRetentionPeriod: 1 # Cost-conscious 1-day retention
+      DeletionProtection: false
+      AutoMinorVersionUpgrade: true
+      Tags:
+        - Key: Name
+          Value: !Sub '${EnvironmentName}-postgres'
+        - Key: Project
+          Value: MediCloud
+
+Outputs:
+  RDSEndpointAddress:
+    Description: PostgreSQL Endpoint Address
+    Value: !GetAtt RDSInstance.Endpoint.Address
+    Export:
+      Name: !Sub '${EnvironmentName}-RDSEndpoint'
+  RDSEndpointPort:
+    Description: PostgreSQL Endpoint Port
+    Value: !GetAtt RDSInstance.Endpoint.Port
+    Export:
+      Name: !Sub '${EnvironmentName}-RDSPort'
