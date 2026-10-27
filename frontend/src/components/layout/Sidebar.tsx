@@ -33,6 +33,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = true }) => {
     { to: '/doctors', label: 'Find Doctors', icon: Search },
     { to: '/appointments', label: 'My Appointments', icon: CalendarCheck },
     { to: '/documents', label: 'Medical Documents', icon: FileText },
+    { to: '/architecture', label: 'Cloud Architecture', icon: Layers },
     { to: '/notifications', label: 'Notifications', icon: Bell },
     { to: '/profile', label: 'My Health Profile', icon: UserCheck },
   ];
@@ -42,12 +43,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = true }) => {
     { to: '/appointments', label: 'Patient Consultations', icon: CalendarCheck },
     { to: '/availability', label: 'Manage Availability', icon: Clock },
     { to: '/documents', label: 'Medical Reports', icon: FileText },
+    { to: '/architecture', label: 'Cloud Architecture', icon: Layers },
     { to: '/notifications', label: 'Notifications', icon: Bell },
     { to: '/profile', label: 'Doctor Profile', icon: Stethoscope },
   ];
 
   const adminLinks = [
     { to: '/dashboard', label: 'System Analytics', icon: Activity },
+    { to: '/architecture', label: 'AWS Topology', icon: Layers },
     { to: '/admin/users', label: 'User Directory', icon: Users },
     { to: '/doctors', label: 'Doctors & Onboarding', icon: Stethoscope },
     { to: '/appointments', label: 'All Appointments', icon: CalendarCheck },

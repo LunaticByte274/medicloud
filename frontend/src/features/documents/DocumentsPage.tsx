@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { MedicalDocument } from '../../types/index.js';
 import { useAuth } from '../../context/AuthContext.js';
 import { apiRequest } from '../../lib/api.js';
+import { useToast } from '../../context/ToastContext.js';
 import {
   UploadCloud,
   FileText,
@@ -22,6 +23,7 @@ import {
 
 export const DocumentsPage: React.FC = () => {
   const { user } = useAuth();
+  const { showToast } = useToast();
   const [documents, setDocuments] = useState<MedicalDocument[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [uploading, setUploading] = useState<boolean>(false);
@@ -122,10 +124,12 @@ export const DocumentsPage: React.FC = () => {
       });
 
       setUploadSuccess(`"${selectedFile.name}" successfully uploaded directly to Amazon S3 and dispatched to Amazon SQS for background worker processing!`);
+      showToast(`Uploaded "${selectedFile.name}" to S3 and queued in SQS!`, 'success');
       setSelectedFile(null);
       fetchDocuments();
     } catch (err: any) {
       setUploadError(err.message || 'Document upload workflow failed');
+      showToast(err.message || 'Document upload workflow failed', 'error');
     } finally {
       setUploading(false);
     }

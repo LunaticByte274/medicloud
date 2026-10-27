@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Doctor, AvailabilitySlot } from '../../types/index.js';
 import { apiRequest } from '../../lib/api.js';
+import { useToast } from '../../context/ToastContext.js';
 import { Calendar, Clock, DollarSign, AlertCircle, CheckCircle2, X } from 'lucide-react';
 
 interface BookingModalProps {
@@ -11,6 +12,7 @@ interface BookingModalProps {
 
 export const BookingModal: React.FC<BookingModalProps> = ({ doctor, onClose, onBooked }) => {
   if (!doctor) return null;
+  const { showToast } = useToast();
 
   const [slots, setSlots] = useState<AvailabilitySlot[]>([]);
   const [selectedSlotId, setSelectedSlotId] = useState<string>('');
@@ -62,12 +64,14 @@ export const BookingModal: React.FC<BookingModalProps> = ({ doctor, onClose, onB
       });
 
       setSuccess(true);
+      showToast(`Appointment confirmed with ${doctor.name}!`, 'success');
       setTimeout(() => {
         onBooked();
         onClose();
       }, 1500);
     } catch (err: any) {
       setError(err.message || 'Booking failed');
+      showToast(err.message || 'Booking failed', 'error');
     } finally {
       setBookingLoading(false);
     }
